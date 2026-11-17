@@ -6,7 +6,7 @@ from spack.package import *
 
 
 class RuntimeReproModern(Package):
-    """Tiny C++ shared library, standing in for PnetCDF's C++ dependency."""
+    """Tiny C++ library using the C++ standard library."""
 
     has_code = False
     version("1.0")
@@ -20,7 +20,6 @@ class RuntimeReproModern(Package):
             "-shared",
             os.path.join(os.path.dirname(__file__), "library.cpp"),
             "-Wl,-soname,libruntime_repro_modern.so",
-            "-Wl,-t",
             "-o",
             os.path.join(prefix.lib, "libruntime_repro_modern.so"),
         )

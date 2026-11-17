@@ -1,0 +1,35 @@
+spack:
+  specs:
+    - runtime_repro.runtime-repro-consumer@1.0 %c=oneapi@2025.3.2
+  view: false
+  repos:
+    runtime_repro: ./spack_repo/runtime_repro
+    builtin: ./.work/spack-packages/repos/spack_repo/builtin
+  config:
+    install_tree:
+      root: ./.work/store
+    build_stage:
+      - ./.work/stage
+  packages:
+    gcc:
+      buildable: false
+      externals:
+        - spec: gcc@13.3.0 languages=c,c++,fortran
+          prefix: /usr
+          extra_attributes:
+            compilers:
+              c: /usr/bin/gcc-13
+              cxx: /usr/bin/g++-13
+              fortran: /usr/bin/gfortran-13
+    intel-oneapi-compilers:
+      require: "%gcc@13"
+    gcc-runtime:
+      require: "@13:"
+    bzip2:
+      require: /uvnzqyaxcaq5r3l6mh46yow7dfbp5fnp
+    runtime-repro-modern:
+      require: "%cxx=oneapi@2025.3.2"
+  mirrors:
+    github-actions-buildcache:
+      url: oci://ghcr.io/spack/github-actions-buildcache
+      signed: false

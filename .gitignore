@@ -1,3 +1,4 @@
 .work/
+.spack-env/
+spack.lock
 __pycache__/
-*.pyc
