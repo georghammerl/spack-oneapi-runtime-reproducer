@@ -1,0 +1,57 @@
+name: Investigate oneAPI runtime paths
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: unpatched
+            spack_ref: ab3f3ac5f48d4d636d82bb317e24dd59494f4d32
+          - name: proposed-patch
+            spack_ref: fc955cd6fd66d94affacf005f831cd68418e20a6
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check required host tools
+        run: |
+          gcc-13 --version
+          g++-13 --version
+          gfortran-13 --version
+          readelf --version
+      - name: Check out comparison inputs
+        env:
+          SPACK_REF: ${{ matrix.spack_ref }}
+        run: |
+          mkdir -p .work
+          git clone --no-checkout https://github.com/georghammerl/spack.git .work/spack
+          git -C .work/spack checkout --detach "$SPACK_REF"
+          git clone --no-checkout https://github.com/spack/spack-packages.git .work/spack-packages
+          git -C .work/spack-packages checkout --detach 8933fbb6925be105d493d2eff0c0b375a2ac1cc8
+      - name: Run experiment
+        run: |
+          python3 reproduce.py \
+            --spack .work/spack \
+            --packages .work/spack-packages \
+            --output .work/result
+      - name: Preserve results, including unsuccessful setup
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.0
+        with:
+          name: runtime-paths-${{ matrix.name }}
+          path: |
+            .work/result/commands.log
+            .work/result/result.json
+            .work/result/environment/spack.yaml
+            .work/result/environment/spack.lock
+            .work/result/stage/**/*.log
+            .work/result/stage/**/spack-build-env*
+          include-hidden-files: true
+          if-no-files-found: warn
